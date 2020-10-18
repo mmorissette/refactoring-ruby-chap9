@@ -3,3 +3,5 @@ require "refactoring/ruby/chap9"
 require "refactoring/ruby/markdown"
 
 require "minitest/autorun"
+
+require "timecop/timecop"
