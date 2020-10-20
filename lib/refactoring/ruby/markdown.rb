@@ -1,30 +1,31 @@
 require_relative 'user'
 require_relative 'template'
-
-class Header
-  attr_reader :markdown
-
-  def initialize(markdown)
-    @markdown = markdown
-  end
-
-  def matches?(line)
-    line.start_with?("# ")
-  end
-
-  def to_html(line)
-    title = /\# (.*)/.match(line).captures[0]
-    "<h1>#{markdown.apply_styling(title)}</h1>"
-  end
-end
+require_relative 'transformers/header'
+require_relative 'transformers/paragraph'
+require_relative 'stylers/bold'
+require_relative 'stylers/italics'
+require_relative 'stylers/replace_username'
+require_relative 'stylers/replace_template'
 
 class Markdown
-  attr_reader :source, :replace_usernames, :transformers
+  attr_reader :source, :replace_usernames, :transformers, :stylers
 
   def initialize(source, replace_usernames: false)
     @source = source
     @replace_usernames = replace_usernames
-    @transformers = [Header.new(self)]
+    @transformers = [
+      Header.new(markdown: self, level: 1),
+      Header.new(markdown: self, level: 2),
+      Header.new(markdown: self, level: 3),
+      Paragraph.new(markdown: self)
+    ]
+
+    @stylers = [
+      ::Stylers::Bold.new,
+      ::Stylers::Italics.new,
+      ::Stylers::ReplaceTemplate.new,
+    ]
+    stylers << ::Stylers::ReplaceUsername.new if replace_usernames
   end
 
   def to_html
@@ -35,38 +36,10 @@ class Markdown
     styled_text = input
     return if styled_text.empty?
 
-    if replace_usernames && styled_text.match?(/@\w*/)
-      replaced_usernames = styled_text.split(" ").map do |word|
-        if match = /@(\w*)/.match(word)
-          username = match.captures[0]
-          user = User.find(username)
-          result = word.gsub("@#{username}", user.name)
-        else
-          result = word
-        end
+    stylers.each do |styler|
+      if styler.matches?(styled_text)
+        styled_text = styler.to_html(styled_text)
       end
-      styled_text = replaced_usernames.join(' ')
-    end
-
-    if styled_text.match?(/{{.*?}}/)
-      replaced_templates = styled_text.split(" ").map do |word|
-        if match = /{{(.*)}}/.match(word)
-          template_name = match.captures[0]
-          template = Template.new(template_name)
-          result = word.gsub("\{\{#{template_name}\}\}", template.to_s)
-        else
-          result = word
-        end
-      end
-      styled_text = replaced_templates.join(' ')
-    end
-
-    if styled_text.match?(/\*\*(.*?)\*\*/)
-      styled_text = styled_text.gsub(/\*\*(.*?)\*\*/, '<b>\1</b>')
-    end
-
-    if styled_text.match?(/\*(.*?)\*/)
-      styled_text = styled_text.gsub(/\*(.*?)\*/, '<i>\1</i>')
     end
 
     styled_text
@@ -88,17 +61,6 @@ class Markdown
     return if line.empty?
 
     transformer = transformers.find { |t| t.matches?(line) }
-
-    if transformer
-      transformer.to_html(line)
-    elsif line.start_with?("## ")
-      title = /\#\# (.*)/.match(line).captures[0]
-      "<h2>#{apply_styling(title)}</h2>"
-    elsif line.start_with?("### ")
-      title = /\#\#\# (.*)/.match(line).captures[0]
-      "<h3>#{apply_styling(title)}</h3>"
-    else
-      "<p>#{apply_styling(line)}</p>"
-    end
+    transformer.to_html(line)
   end
 end
