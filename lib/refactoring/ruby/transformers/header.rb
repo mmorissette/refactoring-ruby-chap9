@@ -1,8 +1,7 @@
 class Header
-  attr_reader :markdown, :level
+  attr_reader :level
 
-  def initialize(markdown:, level:)
-    @markdown = markdown
+  def initialize(level:)
     @level = level
   end
 
@@ -12,6 +11,6 @@ class Header
 
   def to_html(line)
     title = /#{'\#'*level} (.*)/.match(line).captures[0]
-    "<h#{level}>#{markdown.apply_styling(title)}</h#{level}>"
+    "<h#{level}>#{title}</h#{level}>"
   end
 end

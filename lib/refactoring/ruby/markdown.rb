@@ -14,10 +14,10 @@ class Markdown
     @source = source
     @replace_usernames = replace_usernames
     @transformers = [
-      Header.new(markdown: self, level: 1),
-      Header.new(markdown: self, level: 2),
-      Header.new(markdown: self, level: 3),
-      Paragraph.new(markdown: self)
+      Header.new(level: 1),
+      Header.new(level: 2),
+      Header.new(level: 3),
+      Paragraph.new,
     ]
 
     @stylers = [
@@ -30,19 +30,6 @@ class Markdown
 
   def to_html
     parse
-  end
-
-  def apply_styling(input)
-    styled_text = input
-    return if styled_text.empty?
-
-    stylers.each do |styler|
-      if styler.matches?(styled_text)
-        styled_text = styler.to_html(styled_text)
-      end
-    end
-
-    styled_text
   end
 
   private
@@ -61,6 +48,19 @@ class Markdown
     return if line.empty?
 
     transformer = transformers.find { |t| t.matches?(line) }
-    transformer.to_html(line)
+    apply_styling(transformer.to_html(line))
+  end
+
+  def apply_styling(input)
+    styled_text = input
+    return if styled_text.empty?
+
+    stylers.each do |styler|
+      if styler.matches?(styled_text)
+        styled_text = styler.to_html(styled_text)
+      end
+    end
+
+    styled_text
   end
 end
