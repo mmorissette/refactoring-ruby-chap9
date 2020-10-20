@@ -1,3 +1,9 @@
+class MissingUser
+  def name
+    "unknown"
+  end
+end
+
 class User
   attr_reader :username, :name
 
@@ -11,19 +17,11 @@ class User
   ]
 
   def self.find(username)
-    found_user = nil
-    unless username.empty?
-      found = false
-      USERS.each do |user|
-        unless found
-          if user.username == username
-            found_user = user
-            found = true
-          end
-        end
-      end
-    end
-    found_user
-  end
+    return if username.empty?
 
+    USERS.each do |user|
+      return user if user.username == username
+    end
+    MissingUser.new
+  end
 end
