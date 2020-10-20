@@ -9,18 +9,30 @@ class Template
     return if name.empty?
 
     result = ""
-    current_date = Time.now
-    if name == "season" && current_date.between?(Time.new(current_date.year, 12, 21), Time.new(current_date.year, 12, 31)) || current_date.between?(Time.new(current_date.year, 1, 1), Time.new(current_date.year, 3, 19))
-      result = "winter ⛄️"
-    elsif name == "season" && current_date.between?(Time.new(current_date.year, 3, 20), Time.new(current_date.year, 6, 19))
-      result "spring 🌼"
-    elsif name == "season" && current_date.between?(Time.new(current_date.year, 6, 20), Time.new(current_date.year, 9, 21))
-      result = "summer 🌞"
-    elsif name == "season" && current_date.between?(Time.new(current_date.year, 9, 22), Time.new(current_date.year, 12, 20))
-      result = "fall 🍂"
+    if name == "season"
+      result = season
     elsif name == "today"
-      result = current_date.strftime("%Y-%m-%d")
+      result = today
     end
     result
+  end
+
+  private
+
+  def today
+    Time.now.strftime("%Y-%m-%d")
+  end
+
+  def season
+    current_date = Time.now
+    if current_date.between?(Time.new(current_date.year, 12, 21), Time.new(current_date.year, 12, 31)) || current_date.between?(Time.new(current_date.year, 1, 1), Time.new(current_date.year, 3, 19))
+      result = "winter ⛄️"
+    elsif current_date.between?(Time.new(current_date.year, 3, 20), Time.new(current_date.year, 6, 19))
+      result "spring 🌼"
+    elsif current_date.between?(Time.new(current_date.year, 6, 20), Time.new(current_date.year, 9, 21))
+      result = "summer 🌞"
+    elsif current_date.between?(Time.new(current_date.year, 9, 22), Time.new(current_date.year, 12, 20))
+      result = "fall 🍂"
+    end
   end
 end
