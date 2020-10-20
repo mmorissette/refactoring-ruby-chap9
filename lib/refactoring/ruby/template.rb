@@ -9,13 +9,11 @@ class Template
   def to_s
     return if name.empty?
 
-    result = ""
     if name == "season"
-      result = season
+      return season
     elsif name == "today"
-      result = today
+      return today
     end
-    result
   end
 
   private
